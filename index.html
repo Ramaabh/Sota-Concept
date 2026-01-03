@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>SOTA Soda • Interactive Experience</title>
+<style>
+/* ===================== ELEVATED APPLE-INSPIRED DESIGN ===================== */
+:root {
+  --bg: #0b0f14;
+  --panel: #121824;
+  --panel-soft: #161d2b;
+  --text: #f5f7fb;
+  --muted: #9aa3b2;
+  --accent: #6cf2c2;
+  --accent-2: #5aa2ff;
+  --error: #ff4d4d;
+  --success: #28a745;
+  --radius-xl: 28px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --shadow-lg: 0 50px 140px rgba(0,0,0,.65);
+  --shadow-md: 0 10px 30px rgba(0,0,0,.3);
+  --transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(90,162,255,.16), transparent 45%),
+    radial-gradient(1200px 600px at 80% 110%, rgba(108,242,194,.16), transparent 45%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+section {
+  padding: 80px clamp(16px, 5vw, 64px);
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 36px;
+  }
+  section {
+    padding: 120px clamp(20px, 6vw, 80px);
+  }
+}
+
+h1 {
+  font-size: clamp(2.5rem, 8vw, 4.8rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out 0.2s forwards;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  margin: 0 0 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out 0.4s forwards;
+}
+
+p {
+  color: var(--muted);
+  max-width: 60ch;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out 0.6s forwards;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+  opacity: 0;
+  transform: scale(0.98);
+  animation: cardIn 0.6s ease-out forwards;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 36px;
+  }
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(108,242,194,.1);
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 800;
+  font-size: 1rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #071014;
+  cursor: pointer;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover, button:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108,242,194,.4);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+button.secondary:hover, button.secondary:focus {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,.1);
+  background: #0f1522;
+  color: var(--text);
+  transition: var(--transition);
+  -webkit-appearance: none;
+}
+
+input:focus, textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108,242,194,.2);
+}
+
+/* ===================== HERO ===================== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding-top: 120px;
+    padding-bottom: 120px;
+  }
+}
+
+.hero .card {
+  display: grid;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .hero .card {
+    gap: 26px;
+  }
+}
+
+/* ===================== WORDLE ===================== */
+.wordle-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.wordle {
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+}
+
+@media (min-width: 768px) {
+  .wordle {
+    gap: 10px;
+    max-width: 340px;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.tile {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: #0f1522;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: clamp(1.4rem, 5vw, 1.6rem);
+  text-transform: uppercase;
+  transition: transform 0.4s, background 0.4s;
+  animation: popIn 0.3s ease-out;
+}
+
+.tile.reveal {
+  animation: flip 0.6s ease forwards;
+}
+
+.tile.correct {
+  background: var(--accent);
+  color: #071014;
+}
+
+.tile.present {
+  background: #ffd166;
+  color: #071014;
+}
+
+.tile.absent {
+  background: #1c2436;
+  color: var(--muted);
+}
+
+.tile.shake {
+  animation: shake 0.5s;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes flip {
+  0% { transform: rotateX(0); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .keyboard-row {
+    gap: 8px;
+  }
+}
+
+.key {
+  padding: 10px;
+  min-width: 28px;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  background: #1a2236;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .key {
+    padding: 12px;
+  }
+}
+
+.key:hover, .key:focus {
+  background: #222b40;
+}
+
+.key.correct { background: var(--accent); color: #071014; }
+.key.present { background: #ffd166; color: #071014; }
+.key.absent { background: #1c2436; color: var(--muted); }
+
+.key.wide {
+  flex: 1.5;
+}
+
+/* ===================== PROGRESS ===================== */
+.progress {
+  height: 12px;
+  background: #1a2236;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .progress {
+    height: 14px;
+  }
+}
+
+.progress i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.4s ease;
+}
+
+.stat {
+  font-size: 2.5rem;
+  font-weight: 900;
+}
+
+@media (min-width: 768px) {
+  .stat {
+    font-size: 3rem;
+  }
+}
+
+/* ===================== MODAL & MESSAGES ===================== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: var(--panel);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  text-align: center;
+  max-width: 90%;
+  box-shadow: var(--shadow-md);
+  transform: scale(0.9);
+  animation: modalIn 0.3s ease-out forwards;
+}
+
+@media (min-width: 768px) {
+  .modal-content {
+    padding: 36px;
+    max-width: 400px;
+  }
+}
+
+.modal-content h2 {
+  margin-bottom: 16px;
+}
+
+.modal-content button {
+  margin-top: 20px;
+}
+
+/* ===================== TV MODE (FULLSCREEN) ===================== */
+.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 40px;
+  gap: 40px;
+}
+
+.fullscreen .stat {
+  font-size: clamp(6rem, 20vw, 12rem);
+  margin-bottom: 20px;
+  animation: pulse 2s infinite;
+}
+
+.fullscreen p {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--muted);
+}
+
+.fullscreen .progress {
+  height: 28px;
+  width: 80%;
+  margin: 20px 0;
+}
+
+.fullscreen button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+/* ===================== TOAST ===================== */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel-soft);
+  padding: 12px 24px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: opacity 0.3s;
+  color: var(--text);
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.toast.error {
+  background: var(--error);
+}
+
+.toast.success {
+  background: var(--success);
+}
+
+/* ===================== FLAVOR VOTING ===================== */
+.flavor-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.flavor-button {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.flavor-button:hover {
+  background: rgba(108,242,194,.1);
+}
+
+/* ===================== TRIVIA ===================== */
+.trivia-card {
+  margin-top: 40px;
+}
+
+.trivia-fact {
+  font-style: italic;
+  color: var(--accent);
+  animation: fadeIn 1s ease-in;
+}
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.98) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="container">
+    <div class="card">
+      <h1>SOTA Soda</h1>
+      <p>Feedback, games, and community impact — designed like a real product, not a promo page. Experience it in style with fun features!</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button onclick="scrollToSection('survey')">Take Survey</button>
+        <button class="secondary" onclick="scrollToSection('games')">Play Games</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="survey">
+  <div class="container grid">
+    <div class="card">
+      <h2>Weekly Customer Pulse</h2>
+      <p>Quick, anonymous, and actually used to improve our flavors.</p>
+      <input id="drinkFeedback" placeholder="How was your drink today?" />
+      <textarea id="ideas" placeholder="Ideas, issues, or wild flavor thoughts?"></textarea>
+      <button style="margin-top:18px" onclick="submitSurvey()">Submit & Unlock Games</button>
+    </div>
+    <div class="card">
+      <h2>Live Impact</h2>
+      <div class="stat" id="surveyCount">0</div>
+      <p>surveys this week</p>
+      <button style="margin-top: 20px" onclick="enterTVMode()">Enter TV Mode (Fullscreen)</button>
+    </div>
+  </div>
+</section>
+<section id="games">
+  <div class="container grid">
+    <div class="card wordle-card">
+      <h2>Soda Word</h2>
+      <p>Guess the 5-letter soda-related word! Expanded dictionary for more fun.</p>
+      <div class="wordle-wrap">
+        <div class="wordle" id="wordle"></div>
+        <div class="keyboard" id="keyboard"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Flavor of the Month</h2>
+      <p>Vote for your favorite from SOTA Soda Shop flavors. $1 donated per vote!</p>
+      <div class="flavor-options" id="flavorOptions"></div>
+      <div class="progress" style="margin-top:16px"><i id="fundBar"></i></div>
+      <div class="stat" id="donations">$0</div>
+    </div>
+  </div>
+</section>
+<section id="trivia">
+  <div class="container">
+    <div class="card trivia-card">
+      <h2>Soda Trivia</h2>
+      <p>Fun facts about sodas to quench your curiosity!</p>
+      <button onclick="getRandomFact()">Get a Fact</button>
+      <p id="triviaFact" class="trivia-fact"></p>
+    </div>
+  </div>
+</section>
+
+<!-- Modal for Win/Lose -->
+<div class="modal" id="gameModal">
+  <div class="modal-content">
+    <h2 id="modalTitle"></h2>
+    <p id="modalMessage"></p>
+    <button onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+<!-- Toast for Notifications -->
+<div class="toast" id="toast"></div>
+
+<!-- Fullscreen TV Mode Container for Counters -->
+<div id="tvMode" class="fullscreen" style="display: none;">
+  <div style="text-align: center;">
+    <div class="stat" id="surveyCountTV">0</div>
+    <p>surveys this week</p>
+  </div>
+  <div style="text-align: center;">
+    <div class="stat" id="donationsTV">$0</div>
+    <p>donations</p>
+    <div class="progress"><i id="fundBarTV"></i></div>
+  </div>
+  <button class="secondary" onclick="exitTVMode()">Exit TV Mode</button>
+</div>
+
+<script>
+/* ===================== ENHANCED FUNCTIONALITY ===================== */
+
+// Expanded Dictionary from common 5-letter words
+const DICTIONARY = ['WHICH', 'THERE', 'THEIR', 'ABOUT', 'WOULD', 'THESE', 'OTHER', 'WORDS', 'COULD', 'WRITE', 'FIRST', 'WATER', 'AFTER', 'WHERE', 'RIGHT', 'THINK', 'THREE', 'YEARS', 'PLACE', 'SOUND', 'GREAT', 'AGAIN', 'STILL', 'EVERY', 'SMALL', 'FOUND', 'THOSE', 'NEVER', 'UNDER', 'MIGHT', 'WHILE', 'HOUSE', 'WORLD', 'BELOW', 'ASKED', 'GOING', 'LARGE', 'UNTIL', 'ALONG', 'SHALL', 'BEING', 'OFTEN', 'EARTH', 'BEGAN', 'SINCE', 'STUDY', 'NIGHT', 'LIGHT', 'ABOVE', 'PAPER', 'PARTS', 'YOUNG', 'STORY', 'POINT', 'TIMES', 'HEARD', 'WHOLE', 'WHITE', 'GIVEN', 'MEANS', 'MUSIC', 'MILES', 'THING', 'TODAY', 'LATER', 'USING', 'MONEY', 'LINES', 'ORDER', 'GROUP', 'AMONG', 'LEARN', 'KNOWN', 'SPACE', 'TABLE', 'EARLY', 'TREES', 'SHORT', 'HANDS', 'STATE', 'BLACK', 'SHOWN', 'STOOD', 'FRONT', 'VOICE', 'KINDS', 'MAKES', 'COMES', 'CLOSE', 'POWER', 'LIVED', 'VOWEL', 'TAKEN', 'BUILT', 'HEART', 'READY', 'QUITE', 'CLASS', 'BRING', 'ROUND', 'HORSE', 'SHOWS', 'PIECE', 'GREEN', 'STAND', 'BIRDS', 'START', 'RIVER', 'TRIED', 'LEAST', 'FIELD', 'WHOSE', 'GIRLS', 'LEAVE', 'ADDED', 'COLOR', 'THIRD', 'HOURS', 'MOVED', 'PLANT', 'DOING', 'NAMES', 'FORMS', 'HEAVY', 'IDEAS', 'CRIED', 'CHECK', 'FLOOR', 'BEGIN', 'WOMAN', 'ALONE', 'PLANE', 'SPELL', 'WATCH', 'CARRY', 'WROTE', 'CLEAR', 'NAMED', 'BOOKS', 'CHILD', 'GLASS', 'HUMAN', 'TAKES', 'PARTY', 'BUILD', 'SEEMS', 'BLOOD', 'SIDES', 'SEVEN', 'MOUTH', 'SOLVE', 'NORTH', 'VALUE', 'DEATH', 'MAYBE', 'HAPPY', 'TELLS', 'GIVES', 'LOOKS', 'SHAPE', 'LIVES', 'STEPS', 'AREAS', 'SENSE', 'SPEAK', 'FORCE', 'OCEAN', 'SPEED', 'WOMEN', 'METAL', 'SOUTH', 'GRASS', 'SCALE', 'CELLS', 'LOWER', 'SLEEP', 'WRONG', 'PAGES', 'SHIPS', 'NEEDS', 'ROCKS', 'EIGHT', 'MAJOR', 'LEVEL', 'TOTAL', 'AHEAD', 'REACH', 'STARS', 'STORE', 'SIGHT', 'TERMS', 'CATCH', 'WORKS', 'BOARD', 'COVER', 'SONGS', 'EQUAL', 'STONE', 'WAVES', 'GUESS', 'DANCE', 'SPOKE', 'BREAK', 'CAUSE', 'RADIO', 'WEEKS', 'LANDS', 'BASIC', 'LIKED', 'TRADE', 'FRESH', 'FINAL', 'FIGHT', 'MEANT', 'DRIVE', 'SPENT', 'LOCAL', 'WAXES', 'KNOWS', 'TRAIN', 'BREAD', 'HOMES', 'TEETH', 'COAST', 'THICK', 'BROWN', 'CLEAN', 'QUIET', 'SUGAR', 'FACTS', 'STEEL', 'FORTH', 'RULES', 'NOTES', 'UNITS', 'PEACE', 'MONTH', 'VERBS', 'SEEDS', 'HELPS', 'SHARP', 'VISIT', 'WOODS', 'CHIEF', 'WALLS', 'CROSS', 'WINGS', 'GROWN', 'CASES', 'FOODS', 'CROPS', 'FRUIT', 'STICK', 'WANTS', 'STAGE', 'SHEEP', 'NOUNS', 'PLAIN', 'DRINK', 'BONES', 'APART', 'TURNS', 'MOVES', 'TOUCH', 'ANGLE', 'BASED', 'RANGE', 'MARKS', 'TIRED', 'OLDER', 'FARMS', 'SPEND', 'SHOES', 'GOODS', 'CHAIR', 'TWICE', 'CENTS', 'EMPTY', 'ALIKE', 'STYLE', 'BROKE', 'PAIRS', 'COUNT', 'ENJOY', 'SCORE', 'SHORE', 'ROOTS', 'PAINT', 'HEADS', 'SHOOK', 'SERVE', 'ANGRY', 'CROWD', 'WHEEL', 'QUICK', 'DRESS', 'SHARE', 'ALIVE', 'NOISE', 'SOLID', 'CLOTH', 'SIGNS', 'HILLS', 'TYPES', 'DRAWN', 'WORTH', 'TRUCK', 'PIANO', 'UPPER', 'LOVED', 'USUAL', 'FACES', 'DROVE', 'CABIN', 'BOATS', 'TOWNS', 'PROUD', 'COURT', 'MODEL', 'PRIME', 'FIFTY', 'PLANS', 'YARDS', 'PROVE', 'TOOLS', 'PRICE', 'SHEET', 'SMELL', 'BOXES', 'RAISE', 'MATCH', 'TRUTH', 'ROADS', 'THREW', 'ENEMY', 'LUNCH', 'CHART', 'SCENE', 'GRAPH', 'DOUBT', 'GUIDE', 'WINDS', 'BLOCK', 'GRAIN', 'SMOKE', 'MIXED', 'GAMES', 'WAGON', 'SWEET', 'TOPIC', 'EXTRA', 'PLATE', 'TITLE', 'KNIFE', 'FENCE', 'FALLS', 'CLOUD', 'WHEAT', 'PLAYS', 'ENTER', 'BROAD', 'STEAM', 'ATOMS', 'PRESS', 'LYING', 'BASIS', 'CLOCK', 'TASTE', 'GROWS', 'THANK', 'STORM', 'AGREE', 'BRAIN', 'TRACK', 'SMILE', 'FUNNY', 'BEACH', 'STOCK', 'HURRY', 'SAVED', 'SORRY', 'GIANT', 'TRAIL', 'OFFER', 'OUGHT', 'ROUGH', 'DAILY', 'AVOID', 'KEEPS', 'THROW', 'ALLOW', 'CREAM', 'LAUGH', 'EDGES', 'TEACH', 'FRAME', 'BELLS', 'DREAM', 'MAGIC', 'OCCUR', 'ENDED', 'CHORD', 'FALSE', 'SKILL', 'HOLES', 'DOZEN', 'BRAVE', 'APPLE', 'CLIMB', 'OUTER', 'PITCH', 'RULER', 'HOLDS', 'FIXED', 'COSTS', 'CALLS', 'BLANK', 'STAFF', 'LABOR', 'EATEN', 'YOUTH', 'TONES', 'HONOR', 'GLOBE', 'GASES', 'DOORS', 'POLES', 'LOOSE', 'APPLY', 'TEARS', 'EXACT', 'BRUSH', 'CHEST', 'LAYER', 'WHALE', 'MINOR', 'FAITH', 'TESTS', 'JUDGE', 'ITEMS', 'WORRY', 'WASTE', 'HOPED', 'STRIP', 'BEGUN', 'ASIDE', 'LAKES', 'BOUND', 'DEPTH', 'CANDY', 'EVENT', 'WORSE', 'AWARE', 'SHELL', 'ROOMS', 'RANCH', 'IMAGE', 'SNAKE', 'ALOUD', 'DRIED', 'LIKES', 'MOTOR', 'POUND', 'KNEES', 'REFER', 'FULLY', 'CHAIN', 'SHIRT', 'FLOUR', 'DROPS', 'SPITE', 'ORBIT', 'BANKS', 'SHOOT', 'CURVE', 'TRIBE', 'TIGHT', 'BLIND', 'SLEPT', 'SHADE', 'CLAIM', 'FLIES', 'THEME', 'QUEEN', 'FIFTH', 'UNION', 'HENCE', 'STRAW', 'ENTRY', 'ISSUE', 'BIRTH', 'FEELS', 'ANGER', 'BRIEF', 'RHYME', 'GLORY', 'GUARD', 'FLOWS', 'FLESH', 'OWNED', 'TRICK', 'YOURS', 'SIZES', 'NOTED', 'WIDTH', 'BURST', 'ROUTE', 'LUNGS', 'UNCLE', 'BEARS', 'ROYAL', 'KINGS', 'FORTY', 'TRIAL', 'CARDS', 'BRASS', 'OPERA', 'CHOSE', 'OWNER', 'VAPOR', 'BEATS', 'MOUSE', 'TOUGH', 'WIRES', 'METER', 'TOWER', 'FINDS', 'INNER', 'STUCK', 'ARROW', 'POEMS', 'LABEL', 'SWING', 'SOLAR', 'TRULY', 'TENSE', 'BEANS', 'SPLIT', 'RISES', 'WEIGH', 'HOTEL', 'STEMS', 'PRIDE', 'SWUNG', 'GRADE', 'DIGIT', 'BADLY', 'BOOTS', 'PILOT', 'SALES', 'SWEPT', 'LUCKY', 'PRIZE', 'STOVE', 'TUBES', 'ACRES', 'WOUND', 'STEEP', 'SLIDE', 'TRUNK', 'ERROR', 'PORCH', 'SLAVE', 'EXIST', 'FACED', 'MINES', 'MARRY', 'JUICE', 'RACED', 'WAVED', 'GOOSE', 'TRUST', 'FEWER', 'FAVOR', 'MILLS', 'VIEWS', 'JOINT', 'EAGER', 'SPOTS', 'BLEND', 'RINGS', 'ADULT', 'INDEX', 'NAILS', 'HORNS', 'BALLS', 'FLAME', 'RATES', 'DRILL', 'TRACE', 'SKINS', 'WAXED', 'SEATS', 'STUFF', 'RATIO', 'MINDS', 'DIRTY', 'SILLY', 'COINS', 'HELLO', 'TRIPS', 'LEADS', 'RIFLE', 'HOPES', 'BASES', 'SHINE', 'BENCH', 'MORAL', 'FIRES', 'MEALS', 'SHAKE', 'SHOPS', 'CYCLE', 'MOVIE', 'SLOPE', 'CANOE', 'TEAMS', 'FOLKS', 'FIRED', 'BANDS', 'THUMB', 'SHOUT', 'CANAL', 'HABIT', 'REPLY', 'RULED', 'FEVER', 'CRUST', 'SHELF', 'WALKS', 'MIDST', 'CRACK', 'PRINT', 'TALES', 'COACH', 'STIFF', 'FLOOD', 'VERSE', 'AWAKE', 'ROCKY', 'MARCH', 'FAULT', 'SWIFT', 'FAINT', 'CIVIL', 'GHOST', 'FEAST', 'BLADE', 'LIMIT', 'GERMS', 'READS', 'DUCKS', 'DAIRY', 'WORST', 'GIFTS', 'LISTS', 'STOPS', 'RAPID', 'BRICK', 'CLAWS', 'BEADS', 'BEAST', 'SKIRT', 'CAKES', 'LIONS', 'FROGS', 'TRIES', 'NERVE', 'GRAND', 'ARMED', 'TREAT', 'HONEY', 'MOIST', 'LEGAL', 'PENNY', 'CROWN', 'SHOCK', 'TAXES', 'SIXTY', 'ALTAR', 'PULLS', 'SPORT', 'DRUMS', 'TALKS', 'DYING', 'DATES', 'DRANK', 'BLOWS', 'LEVER', 'WAGES', 'PROOF', 'DRUGS', 'TANKS', 'SINGS', 'TAILS', 'PAUSE', 'HERDS', 'AROSE', 'HATED', 'CLUES', 'NOVEL', 'SHAME', 'BURNT', 'RACES', 'FLASH', 'WEARY', 'HEELS', 'TOKEN', 'COATS', 'SPARE', 'SHINY', 'ALARM', 'DIMES', 'SIXTH', 'CLERK', 'MERCY', 'SUNNY', 'GUEST', 'FLOAT', 'SHONE', 'PIPES', 'WORMS', 'BILLS', 'SWEAT', 'SUITS', 'SMART', 'UPSET', 'RAINS', 'SANDY', 'RAINY', 'PARKS', 'SADLY', 'FANCY', 'RIDER', 'UNITY', 'BUNCH', 'ROLLS', 'CRASH', 'CRAFT', 'NEWLY', 'GATES', 'HATCH', 'PATHS', 'FUNDS', 'WIDER', 'GRACE', 'GRAVE', 'TIDES', 'ADMIT', 'SHIFT', 'SAILS', 'PUPIL', 'TIGER', 'ANGEL', 'CRUEL', 'AGENT', 'DRAMA', 'URGED', 'PATCH', 'NESTS', 'VITAL', 'SWORD', 'BLAME', 'WEEDS', 'SCREW', 'VOCAL', 'BACON', 'CHALK', 'CARGO', 'CRAZY', 'ACTED', 'GOATS', 'ARISE', 'WITCH', 'LOVES', 'QUEER', 'DWELL', 'BACKS', 'ROPES', 'SHOTS', 'MERRY', 'PHONE', 'CHEEK', 'PEAKS', 'IDEAL', 'BEARD', 'EAGLE', 'CREEK', 'CRIES', 'ASHES', 'STALL', 'YIELD', 'MAYOR', 'OPENS', 'INPUT', 'FLEET', 'TOOTH', 'CUBIC', 'WIVES', 'BURNS', 'POETS', 'APRON', 'SPEAR', 'ORGAN', 'CLIFF', 'STAMP', 'PASTE', 'RURAL', 'BAKED', 'CHASE', 'SLICE', 'SLANT', 'KNOCK', 'NOISY', 'SORTS', 'STAYS', 'WIPED', 'BLOWN', 'PILED', 'CLUBS', 'CHEER', 'WIDOW', 'TWIST', 'TENTH', 'HIDES', 'COMMA', 'SWEEP', 'SPOON', 'STERN', 'CREPT', 'MAPLE', 'DEEDS', 'RIDES', 'MUDDY', 'CRIME', 'JELLY', 'RIDGE', 'DRIFT', 'DUSTY', 'DEVIL', 'TEMPO', 'HUMOR', 'SENDS', 'STEAL', 'TENTS', 'WAIST', 'ROSES', 'REIGN', 'NOBLE', 'CHEAP', 'DENSE', 'LINEN', 'GEESE', 'WOVEN', 'POSTS', 'HIRED', 'WRATH', 'SALAD', 'BOWED', 'TIRES', 'SHARK', 'BELTS', 'GRASP', 'BLAST', 'POLAR', 'FUNGI', 'TENDS', 'PEARL', 'LOADS', 'JOKES', 'VEINS', 'FROST', 'HEARS', 'LOSES', 'HOSTS', 'DIVER', 'PHASE', 'TOADS', 'ALERT', 'TASKS', 'SEAMS', 'CORAL', 'FOCUS', 'NAKED', 'PUPPY', 'JUMPS', 'SPOIL', 'QUART', 'MACRO', 'FEARS', 'FLUNG', 'SPARK', 'VIVID', 'BROOK', 'STEER', 'SPRAY', 'DECAY', 'PORTS', 'SOCKS', 'URBAN', 'GOALS', 'GRANT'];
+
+// Daily Word Selection
+function getDailyWord() {
+  const date = new Date().toDateString();
+  const index = Math.floor(Math.abs(date.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % DICTIONARY.length);
+  return DICTIONARY[index];
+}
+
+const WORD = getDailyWord();
+let state = JSON.parse(localStorage.getItem('sota')) || { surveys: 0, donations: 0, votes: {}, wordleStats: { played: 0, wins: 0 } };
+let row = 0, col = 0, gameOver = false;
+let tvModeActive = false;
+
+const grid = document.getElementById('wordle');
+const kb = document.getElementById('keyboard');
+const modal = document.getElementById('gameModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalMessage = document.getElementById('modalMessage');
+const toast = document.getElementById('toast');
+const tvContainer = document.getElementById('tvMode');
+const surveyCountTV = document.getElementById('surveyCountTV');
+const donationsTV = document.getElementById('donationsTV');
+const fundBarTV = document.getElementById('fundBarTV');
+const flavorOptions = document.getElementById('flavorOptions');
+const triviaFact = document.getElementById('triviaFact');
+
+// SOTA Soda Shop Flavors
+const FLAVORS = ['COLA', 'ROOT BEER', 'LEMON LIME', 'ORANGE', 'GRAPE', 'CHERRY', 'CREAM SODA', 'GINGER ALE', 'PEACH', 'STRAWBERRY'];
+
+// Trivia Facts
+const TRIVIA = [
+  'Did you know? The first soda was invented in 1767 by Joseph Priestley.',
+  'Coca-Cola was originally green in color.',
+  'Root beer was once used as a medicine.',
+  'The average American drinks about 45 gallons of soda per year.',
+  'Pepsi was named after the digestive enzyme pepsin.',
+  'Soda cans are designed to hold pressure up to 90 psi.',
+  'The world\'s oldest soda brand is Schweppes, founded in 1783.',
+  'Mountain Dew was originally a mixer for whiskey.',
+  'Dr Pepper has 23 flavors.',
+  'Fanta was created in Germany during WWII due to ingredient shortages.'
+];
+
+// Utility Functions
+function scrollToSection(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+}
+
+function showToast(message, type = 'info') {
+  toast.textContent = message;
+  toast.className = 'toast show ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showModal(title, message) {
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+  modal.classList.add('show');
+  if (title === 'Congratulations!') confetti();
+}
+
+function hideModal() {
+  modal.classList.remove('show');
+}
+
+function saveState() {
+  localStorage.setItem('sota', JSON.stringify(state));
+  document.getElementById('surveyCount').textContent = state.surveys;
+  document.getElementById('donations').textContent = '$' + state.donations;
+  document.getElementById('fundBar').style.width = Math.min(100, state.donations / 10 * 100) + '%'; // Scale for demo
+}
+
+// Submit Survey
+function submitSurvey() {
+  const feedback = document.getElementById('drinkFeedback').value;
+  const ideas = document.getElementById('ideas').value;
+  if (!feedback && !ideas) {
+    showToast('Please provide some feedback!', 'error');
+    return;
+  }
+  state.surveys++;
+  saveState();
+  showToast('Thanks for your feedback!', 'success');
+  scrollToSection('games');
+  document.getElementById('drinkFeedback').value = '';
+  document.getElementById('ideas').value = '';
+}
+
+// Flavor Voting Setup
+function setupFlavors() {
+  FLAVORS.forEach(flavor => {
+    if (!state.votes[flavor]) state.votes[flavor] = 0;
+    const btn = document.createElement('button');
+    btn.className = 'flavor-button';
+    btn.textContent = `${flavor} (${state.votes[flavor]})`;
+    btn.onclick = () => vote(flavor);
+    flavorOptions.appendChild(btn);
+  });
+  saveState();
+}
+
+function vote(flavor) {
+  state.votes[flavor]++;
+  state.donations++;
+  saveState();
+  showToast(`Voted for ${flavor}! $1 donated.`, 'success');
+  setupFlavors(); // Refresh buttons
+}
+
+// Wordle Grid Setup
+function setupGrid(targetGrid) {
+  targetGrid.innerHTML = '';
+  for (let r = 0; r < 6; r++) {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row';
+    for (let c = 0; c < 5; c++) {
+      const t = document.createElement('div');
+      t.className = 'tile';
+      rowDiv.appendChild(t);
+    }
+    targetGrid.appendChild(rowDiv);
+  }
+}
+
+// Keyboard Setup
+function setupKeyboard(targetKb, pressFn) {
+  targetKb.innerHTML = '';
+  const rows = [
+    'QWERTYUIOP'.split(''),
+    'ASDFGHJKL'.split(''),
+    ['Enter', ...'ZXCVBNM'.split(''), '⌫']
+  ];
+  rows.forEach(rowKeys => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keyboard-row';
+    rowKeys.forEach(k => {
+      const d = document.createElement('div');
+      d.className = 'key' + (k === 'Enter' || k === '⌫' ? ' wide' : '');
+      d.textContent = k;
+      d.onclick = () => pressFn(k);
+      rowDiv.appendChild(d);
+    });
+    targetKb.appendChild(rowDiv);
+  });
+}
+
+// Press Key Logic
+function press(k) {
+  if (gameOver || row >= 6) return;
+  if (k === '⌫' && col > 0) {
+    col--;
+    grid.children[row].children[col].textContent = '';
+    return;
+  }
+  if (k === 'Enter' && col === 5) {
+    check();
+    return;
+  }
+  if (/^[A-Z]$/.test(k) && col < 5) {
+    grid.children[row].children[col].textContent = k;
+    col++;
+    grid.children[row].children[col - 1].style.animation = 'popIn 0.3s ease-out';
+  }
+}
+
+function check() {
+  const tiles = [...grid.children[row].children];
+  const guess = tiles.map(t => t.textContent).join('');
+  if (guess.length !== 5 || !DICTIONARY.includes(guess)) {
+    tiles.forEach(t => t.classList.add('shake'));
+    setTimeout(() => tiles.forEach(t => t.classList.remove('shake')), 500);
+    showToast('Not a valid word!', 'error');
+    return;
+  }
+
+  const wordArr = WORD.split('');
+  const guessArr = guess.split('');
+  const status = new Array(5).fill('absent');
+
+  guessArr.forEach((letter, i) => {
+    if (letter === wordArr[i]) {
+      status[i] = 'correct';
+      wordArr[i] = null;
+    }
+  });
+
+  guessArr.forEach((letter, i) => {
+    if (status[i] === 'absent' && wordArr.includes(letter)) {
+      status[i] = 'present';
+      wordArr[wordArr.indexOf(letter)] = null;
+    }
+  });
+
+  tiles.forEach((t, i) => {
+    setTimeout(() => {
+      t.classList.add('reveal', status[i]);
+    }, i * 120);
+  });
+
+  guessArr.forEach((letter, i) => {
+    const key = [...kb.querySelectorAll('.key')].find(kel => kel.textContent === letter);
+    if (key) {
+      if (status[i] === 'correct') key.classList.add('correct');
+      else if (status[i] === 'present' && !key.classList.contains('correct')) key.classList.add('present');
+      else if (!key.classList.contains('correct') && !key.classList.contains('present')) key.classList.add('absent');
+    }
+  });
+
+  row++;
+  col = 0;
+
+  if (guess === WORD) {
+    gameOver = true;
+    state.wordleStats.played++;
+    state.wordleStats.wins++;
+    saveState();
+    setTimeout(() => showModal('Congratulations!', `You guessed the word: ${WORD}`), 600);
+  } else if (row === 6) {
+    gameOver = true;
+    state.wordleStats.played++;
+    saveState();
+    setTimeout(() => showModal('Game Over', `The word was: ${WORD}`), 600);
+  }
+}
+
+function resetGame() {
+  row = 0;
+  col = 0;
+  gameOver = false;
+  setupGrid(grid);
+  setupKeyboard(kb, press);
+  hideModal();
+}
+
+// Confetti on Win
+function confetti() {
+  for (let i = 0; i < 100; i++) {
+    const conf = document.createElement('div');
+    conf.style.position = 'fixed';
+    conf.style.left = Math.random() * 100 + 'vw';
+    conf.style.top = '-10px';
+    conf.style.width = Math.random() * 10 + 5 + 'px';
+    conf.style.height = conf.style.width;
+    conf.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    conf.style.animation = `confetti ${Math.random() * 3 + 2}s linear forwards`;
+    document.body.appendChild(conf);
+    setTimeout(() => conf.remove(), 5000);
+  }
+}
+
+// TV Mode
+function enterTVMode() {
+  tvModeActive = true;
+  tvContainer.style.display = 'flex';
+  syncTVCounters();
+  document.documentElement.requestFullscreen().catch(err => {
+    showToast('Fullscreen not supported.', 'error');
+  });
+}
+
+function exitTVMode() {
+  tvModeActive = false;
+  tvContainer.style.display = 'none';
+  if (document.fullscreenElement) document.exitFullscreen();
+}
+
+function syncTVCounters() {
+  surveyCountTV.textContent = state.surveys;
+  donationsTV.textContent = '$' + state.donations;
+  fundBarTV.style.width = Math.min(100, state.donations / 10 * 100) + '%';
+}
+
+// Trivia
+function getRandomFact() {
+  const fact = TRIVIA[Math.floor(Math.random() * TRIVIA.length)];
+  triviaFact.textContent = fact;
+  triviaFact.style.animation = 'fadeIn 1s ease-in';
+}
+
+// Physical Keyboard
+document.addEventListener('keydown', e => {
+  if (gameOver || tvModeActive) return;
+  const key = e.key.toUpperCase();
+  if (key === 'BACKSPACE') press('⌫');
+  else if (key === 'ENTER') press('Enter');
+  else if (/^[A-Z]$/.test(key)) press(key);
+});
+
+// Section Animations
+const sections = document.querySelectorAll('section');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+sections.forEach(section => observer.observe(section));
+
+// Initial Setup
+setupGrid(grid);
+setupKeyboard(kb, press);
+setupFlavors();
+saveState();
+
+// Update TV
+setInterval(() => {
+  if (tvModeActive) syncTVCounters();
+}, 1000);
+
+</script>
+</body>
+</html>
